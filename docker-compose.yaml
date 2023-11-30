@@ -1,0 +1,39 @@
+version: '3'
+services:
+  app:
+    image: stocks-data-aggregator
+    restart: on-failure
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    links:
+      - db
+  db:
+    image: postgres:16.1-alpine3.18
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./volumes/postgres:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+  liquibase:
+    image: liquibase/liquibase:4.19
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+    environment:
+      LIQUIBASE_COMMAND_USERNAME: ${DB_USERNAME}
+      LIQUIBASE_COMMAND_CHANGELOG_FILE: changelog.xml
+      LIQUIBASE_COMMAND_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?username=${DB_USERNAME}&password=${DB_PASSWORD}
+    volumes:
+      - ./db:/liquibase/changelog
+    links:
+      - db
+    command: "update"
+networks:
+  db:

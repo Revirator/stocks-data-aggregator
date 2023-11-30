@@ -1,0 +1,33 @@
+<databaseChangeLog logicalFilePath="changelogs/changelog.0.1.0.xml"
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+    <changeSet id="0.0.0-create-stocks-table" author="revirator">
+        <createTable tableName="STOCKS">
+            <column name="TICKER" type="nvarchar(32)">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="CIK" type="nvarchar(10)">
+                <constraints nullable="false" />
+            </column>
+            <column name="NAME" type="nvarchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="EXCHANGE" type="nvarchar(32)">
+                <constraints nullable="false" />
+            </column>
+            <column name="FINANCIALS" type="bytea"/>
+        </createTable>
+
+        <loadData tableName="STOCKS" file="/data/companies.csv">
+            <column header="TICKER" name="TICKER" type="STRING" />
+            <column header="CIK" name="CIK" type="STRING" />
+            <column header="NAME" name="NAME" type="STRING" />
+            <column header="EXCHANGE" name="EXCHANGE" type="STRING" />
+        </loadData>
+
+        <rollback>
+            <dropTable tableName="STOCKS" />
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

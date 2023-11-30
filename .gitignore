@@ -1,0 +1,7 @@
+# Go
+bin/
+go.sum
+
+# Local files
+.env
+volumes/
