@@ -61,7 +61,7 @@ const ERROR_LOG = "Could not retrieve financial data from Edgar for stock with C
 
 var Client = http.Client{Timeout: time.Second * 10}
 
-func GetFinancialsForCompanyGivenCIK(cik string) *Concept {
+func GetConceptForCompanyGivenCIK(cik string) *Concept {
 	request, err := http.NewRequest("GET", fmt.Sprintf(EDGAR_COMPANY_DATA_URL, cik), nil)
 	if err != nil {
 		log.Printf(ERROR_LOG, cik, err)
@@ -99,7 +99,7 @@ func GetFinancialsForCompanyGivenCIK(cik string) *Concept {
 
 	if response.StatusCode != http.StatusOK {
 		log.Printf("Could not retrieve financial data from Edgar for stock with CIK '%s'", cik)
-		log.Printf("Got a response with statuc code %d and body:\n%s", response.StatusCode, string(body))
+		log.Printf("Instead got a response with statuc code %d and body:\n%s", response.StatusCode, string(body))
 		return nil
 	}
 

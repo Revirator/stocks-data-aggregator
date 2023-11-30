@@ -29,14 +29,21 @@ func mapFinancialDataEntryWrapperToFinancialsEntries(wrapper *FinancialDataEntry
 		for _, v := range wrapper.PrimaryEntries {
 			result = append(result, mapFinancialDataEntryToFinancialsEntry(&v))
 		}
-	} else if len(wrapper.SecondaryEntries) > 0 {
+		return result
+	}
+
+	if len(wrapper.SecondaryEntries) > 0 {
 		for _, v := range wrapper.SecondaryEntries {
 			result = append(result, mapFinancialDataEntryToFinancialsEntry(&v))
 		}
-	} else if len(wrapper.TertiaryEntries) > 0 {
+		return result
+	}
+
+	if len(wrapper.TertiaryEntries) > 0 {
 		for _, v := range wrapper.TertiaryEntries {
 			result = append(result, mapFinancialDataEntryToFinancialsEntry(&v))
 		}
+		return result
 	}
 
 	return result

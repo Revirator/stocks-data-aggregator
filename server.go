@@ -62,9 +62,9 @@ func (server *Server) getAndUpdateStockByTicker(writer http.ResponseWriter, tick
 
 	if stock.Financials == nil || updateFinancials {
 		log.Printf("Requesting data from Edgar for stock with ticker '%s'", ticker)
-		financials := GetFinancialsForCompanyGivenCIK(stock.CIK)
-		if financials != nil {
-			stock.Financials = MapConceptToFinancials(financials)
+		concept := GetConceptForCompanyGivenCIK(stock.CIK)
+		if concept != nil {
+			stock.Financials = MapConceptToFinancials(concept)
 			server.Database.UpdateStockFinancialsByTicker(ticker, stock.Financials)
 		}
 	}
@@ -74,22 +74,20 @@ func (server *Server) getAndUpdateStockByTicker(writer http.ResponseWriter, tick
 
 func (server *Server) getStockFromDatabase(ticker string) (*Stock, *ServerError) {
 	stock, outcome := server.Database.GetStockByTicker(ticker)
-	if outcome != SUCCESS {
-		if outcome == DATABASE_ERROR {
-			return nil, &ServerError{
-				Status: http.StatusInternalServerError,
-				Error:  "Something went wrong! Please try again later.",
-			}
+	switch outcome {
+	case DATABASE_ERROR:
+		return nil, &ServerError{
+			Status: http.StatusInternalServerError,
+			Error:  "Something went wrong! Please try again later.",
 		}
-		if outcome == STOCK_MISSING_ERROR {
-			return nil, &ServerError{
-				Status: http.StatusNotFound,
-				Error:  fmt.Sprintf("Stock with ticker '%s' does not exist or is not listed on any of the US exchanges.", ticker),
-			}
+	case STOCK_MISSING_ERROR:
+		return nil, &ServerError{
+			Status: http.StatusNotFound,
+			Error:  fmt.Sprintf("Stock with ticker '%s' does not exist or is not listed on any of the US exchanges.", ticker),
 		}
+	default:
+		return stock, nil
 	}
-
-	return stock, nil
 }
 
 func serverFuncHandler(function ServerFunc) http.HandlerFunc {
