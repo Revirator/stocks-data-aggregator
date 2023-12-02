@@ -3,54 +3,34 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
 
 	_ "github.com/lib/pq"
 )
 
 type Stock struct {
-	CIK        string      `json:"cik"`
-	Ticker     string      `json:"ticker"`
-	Name       string      `json:"name"`
-	Exchange   string      `json:"exchange"`
-	Financials *Financials `json:"financials"`
+	CIK         string                     `json:"cik"`
+	Ticker      string                     `json:"ticker"`
+	CompanyName string                     `json:"company_name"`
+	Exchange    string                     `json:"exchange"`
+	Financials  map[string]FinancialMetric `json:"financials"`
 }
 
-// TODO: change if needed
-type Financials struct {
-	Cash                                  FinancialsMetric
-	CashAndCashEquivalentsAtCarryingValue FinancialsMetric
-	CommonStockSharesOutstanding          FinancialsMetric
-	CostsAndExpenses                      FinancialsMetric
-	EarningsPerShareDiluted               FinancialsMetric
-	LongTermDebt                          FinancialsMetric
-	NetIncomeLoss                         FinancialsMetric
-	PaymentsOfDividends                   FinancialsMetric
-	PaymentsOfDividendsCommonStock        FinancialsMetric
-	Revenues                              FinancialsMetric
-	ShortTermInvestments                  FinancialsMetric
+type FinancialMetric struct {
+	Label       string           `json:"label"`
+	Description string           `json:"description"`
+	Values      []FinancialEntry `json:"values"`
 }
 
-type FinancialsMetric struct {
-	Description string            `json:"description"`
-	Values      []FinancialsEntry `json:"values"`
-}
-
-type FinancialsEntry struct {
+type FinancialEntry struct {
 	Start string  `json:"start"`
 	End   string  `json:"end"`
 	Val   float64 `json:"val"`
 	Form  string  `json:"form"`
 	Frame string  `json:"frame"`
 }
-
-type DatabaseOperationOutcome string
-
-const (
-	SUCCESS             DatabaseOperationOutcome = "SUCCESS"
-	DATABASE_ERROR      DatabaseOperationOutcome = "DATABASE_ERROR"
-	STOCK_MISSING_ERROR DatabaseOperationOutcome = "STOCK_MISSING_ERROR"
-)
 
 const (
 	STOCK_RETRIEVAL_ERROR_LOG         = "Could not retrieve stock with ticker '%s' from the database. Root cause:\n%s"
@@ -73,18 +53,20 @@ func DatabaseInit(connectionString string) (*Database, error) {
 	}, nil
 }
 
-func (database *Database) GetStockByTicker(ticker string) (*Stock, DatabaseOperationOutcome) {
+func (database *Database) GetStockByTicker(ticker string) (*Stock, *ServerError) {
 	query := "SELECT * FROM STOCKS WHERE TICKER = $1"
 	rows, err := database.db.Query(query, ticker)
 
 	if err != nil {
 		log.Printf(STOCK_RETRIEVAL_ERROR_LOG, ticker, err)
-		return nil, DATABASE_ERROR
+		return nil, InternalServerError()
 	}
 
 	if !rows.Next() {
-		log.Printf("Stock with ticker '%s' is missing in the database", ticker)
-		return nil, STOCK_MISSING_ERROR
+		return nil, &ServerError{
+			StatusCode: http.StatusNotFound,
+			Message:    fmt.Sprintf("Stock with ticker '%s' does not exist or is not listed on any of the US exchanges.", ticker),
+		}
 	}
 
 	var financialData sql.NullString
@@ -92,27 +74,27 @@ func (database *Database) GetStockByTicker(ticker string) (*Stock, DatabaseOpera
 	err = rows.Scan(
 		&stock.Ticker,
 		&stock.CIK,
-		&stock.Name,
+		&stock.CompanyName,
 		&stock.Exchange,
 		&financialData,
 	)
 	if err != nil {
 		log.Printf(STOCK_RETRIEVAL_ERROR_LOG, ticker, err)
-		return nil, DATABASE_ERROR
+		return nil, InternalServerError()
 	}
 
 	if financialData.Valid {
 		err = json.Unmarshal([]byte(financialData.String), &stock.Financials)
 		if err != nil {
 			log.Printf(STOCK_RETRIEVAL_ERROR_LOG, ticker, err)
-			return nil, DATABASE_ERROR
+			return nil, InternalServerError()
 		}
 	}
 
-	return stock, SUCCESS
+	return stock, nil
 }
 
-func (database *Database) UpdateStockFinancialsByTicker(ticker string, financials *Financials) {
+func (database *Database) UpdateStockFinancialsByTicker(ticker string, financials map[string]FinancialMetric) {
 	financialData, err := json.Marshal(financials)
 	if err != nil {
 		log.Printf(STOCK_FINANCIALS_UPDATE_ERROR_LOG, ticker, err)

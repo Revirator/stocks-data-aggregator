@@ -9,6 +9,8 @@ RUN go mod download
 COPY .env ./
 COPY *.go ./
 
+ADD templates /app/templates
+
 RUN go build -o /stocks-data-aggregator
 
 EXPOSE 8080

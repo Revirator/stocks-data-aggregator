@@ -10,7 +10,7 @@
             <column name="CIK" type="nvarchar(10)">
                 <constraints nullable="false" />
             </column>
-            <column name="NAME" type="nvarchar(255)">
+            <column name="COMPANY_NAME" type="nvarchar(255)">
                 <constraints nullable="false" />
             </column>
             <column name="EXCHANGE" type="nvarchar(32)">
@@ -22,7 +22,7 @@
         <loadData tableName="STOCKS" file="/data/companies.csv">
             <column header="TICKER" name="TICKER" type="STRING" />
             <column header="CIK" name="CIK" type="STRING" />
-            <column header="NAME" name="NAME" type="STRING" />
+            <column header="COMPANY_NAME" name="COMPANY_NAME" type="STRING" />
             <column header="EXCHANGE" name="EXCHANGE" type="STRING" />
         </loadData>
 

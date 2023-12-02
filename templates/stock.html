@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Stock Financials For Dummies</title>
+</head>
+
+<body>
+    <h1>{{ .CompanyName }} ({{ .Ticker }})</h1>
+    <h2>{{ .Exchange }}</h2>
+    <h3>Financials:</h3>
+    <ul>
+        {{ range $key, $value := .Financials }}
+        <li>
+            <p><b>{{ $value.Label }}</b></p>
+            <p>{{ $value.Description }}</p>
+            <p>{{ $value.Values }}</p>
+        </li>
+        {{ end }}
+    </ul>
+</body>
+
+</html>

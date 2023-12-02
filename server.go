@@ -1,21 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"text/template"
 
 	"github.com/gorilla/mux"
 )
-
-type ServerFunc func(http.ResponseWriter, *http.Request) error
-
-type ServerError struct {
-	Status int    `json:"-"`
-	Error  string `json:"error"`
-}
 
 type Server struct {
 	HostAndPort string
@@ -31,80 +24,60 @@ func ServerInit(hostAndPort string, database *Database) *Server {
 
 func (server *Server) Run() {
 	router := mux.NewRouter()
-	router.HandleFunc("/stocks/{ticker}", serverFuncHandler(server.handleStocks))
+	router.HandleFunc("/", server.homePage).Methods("GET")
+	router.HandleFunc("/stocks/{ticker}", server.stockPage).Methods("GET")
+
+	router.MethodNotAllowedHandler = CustomerErrorHandler(
+		http.StatusMethodNotAllowed,
+		"Method not allowed.",
+	)
+	router.NotFoundHandler = CustomerErrorHandler(
+		http.StatusNotFound,
+		"Page not found.",
+	)
 
 	log.Printf("Server started on %s", server.HostAndPort)
 	http.ListenAndServe(server.HostAndPort, router)
 }
 
-func (server *Server) handleStocks(writer http.ResponseWriter, request *http.Request) error {
-	ticker := strings.ToUpper(mux.Vars(request)["ticker"])
-	if request.Method == "GET" {
-		return server.getAndUpdateStockByTicker(writer, ticker, false)
-	}
-
-	if request.Method == "POST" {
-		return server.getAndUpdateStockByTicker(writer, ticker, true)
-	}
-
-	return writeJSON(
-		writer,
-		http.StatusMethodNotAllowed,
-		ServerError{Error: "Method not allowed."},
-	)
+func (server *Server) homePage(writer http.ResponseWriter, request *http.Request) {
+	WriteHTML(writer, http.StatusOK, "index.html", nil)
 }
 
-func (server *Server) getAndUpdateStockByTicker(writer http.ResponseWriter, ticker string, updateFinancials bool) error {
-	stock, err := server.getStockFromDatabase(ticker)
+func (server *Server) stockPage(writer http.ResponseWriter, request *http.Request) {
+	ticker := strings.ToUpper(mux.Vars(request)["ticker"])
+	stock, err := server.getStockByTicker(ticker)
 	if err != nil {
-		return writeJSON(writer, err.Status, err)
+		WriteHTML(writer, err.StatusCode, "error.html", err.Message)
+		return
+	}
+	WriteHTML(writer, http.StatusOK, "stock.html", stock)
+}
+
+func (server *Server) getStockByTicker(ticker string) (*Stock, *ServerError) {
+	stock, err := server.Database.GetStockByTicker(ticker)
+	if err != nil {
+		return nil, err
 	}
 
-	if stock.Financials == nil || updateFinancials {
+	if stock.Financials == nil {
 		log.Printf("Requesting data from Edgar for stock with ticker '%s'", ticker)
-		concept := GetConceptForCompanyGivenCIK(stock.CIK)
-		if concept != nil {
-			stock.Financials = MapConceptToFinancials(concept)
+		facts := GetFinancialFactsForCompanyGivenCIK(stock.CIK)
+		if facts != nil {
+			stock.Financials = MapFinancialFactsToFinancialMetrics(facts)
 			server.Database.UpdateStockFinancialsByTicker(ticker, stock.Financials)
 		}
 	}
 
-	return writeJSON(writer, http.StatusOK, stock)
+	return stock, nil
 }
 
-func (server *Server) getStockFromDatabase(ticker string) (*Stock, *ServerError) {
-	stock, outcome := server.Database.GetStockByTicker(ticker)
-	switch outcome {
-	case DATABASE_ERROR:
-		return nil, &ServerError{
-			Status: http.StatusInternalServerError,
-			Error:  "Something went wrong! Please try again later.",
-		}
-	case STOCK_MISSING_ERROR:
-		return nil, &ServerError{
-			Status: http.StatusNotFound,
-			Error:  fmt.Sprintf("Stock with ticker '%s' does not exist or is not listed on any of the US exchanges.", ticker),
-		}
-	default:
-		return stock, nil
-	}
-}
-
-func serverFuncHandler(function ServerFunc) http.HandlerFunc {
-	return func(writer http.ResponseWriter, request *http.Request) {
-		if err := function(writer, request); err != nil {
-			log.Println(err)
-			writeJSON(
-				writer,
-				http.StatusInternalServerError,
-				ServerError{Error: "Something went wrong! Please try again later."},
-			)
-		}
-	}
-}
-
-func writeJSON(writer http.ResponseWriter, statusCode int, value any) error {
-	writer.Header().Add("Content-Type", "application/json")
+func WriteHTML(writer http.ResponseWriter, statusCode int, templateName string, value any) error {
+	writer.Header().Add("Content-Type", "text/html")
 	writer.WriteHeader(statusCode)
-	return json.NewEncoder(writer).Encode(value)
+	template, err := template.ParseFiles(fmt.Sprintf("./templates/%s", templateName))
+	if err != nil {
+		return err
+	}
+	return template.Execute(writer, value)
 }

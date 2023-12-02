@@ -16,10 +16,15 @@ type EdgarEntry struct {
 }
 
 type FinancialFacts struct {
-	Concept Concept `json:"us-gaap"`
+	Entity     EntityInformation `json:"dei"`
+	Principles Principles        `json:"us-gaap"`
 }
 
-type Concept struct {
+type EntityInformation struct {
+	EntityCommonStockSharesOutstanding Metric
+}
+
+type Principles struct {
 	Cash                                  Metric // TODO: check why some companies are missing this
 	CashAndCashEquivalentsAtCarryingValue Metric
 	CommonStockSharesOutstanding          Metric // TODO: might not be up to date?
@@ -34,11 +39,12 @@ type Concept struct {
 }
 
 type Metric struct {
-	Description string                    `json:"description"`
-	Wrapper     FinancialDataEntryWrapper `json:"units"`
+	Label       string `json:"label"`
+	Description string `json:"description"`
+	Units       Units  `json:"units"`
 }
 
-type FinancialDataEntryWrapper struct {
+type Units struct {
 	PrimaryEntries   []FinancialDataEntry `json:"usd"`
 	SecondaryEntries []FinancialDataEntry `json:"shares"`
 	TertiaryEntries  []FinancialDataEntry `json:"usd/shares"`
@@ -61,7 +67,7 @@ const ERROR_LOG = "Could not retrieve financial data from Edgar for stock with C
 
 var Client = http.Client{Timeout: time.Second * 10}
 
-func GetConceptForCompanyGivenCIK(cik string) *Concept {
+func GetFinancialFactsForCompanyGivenCIK(cik string) *FinancialFacts {
 	request, err := http.NewRequest("GET", fmt.Sprintf(EDGAR_COMPANY_DATA_URL, cik), nil)
 	if err != nil {
 		log.Printf(ERROR_LOG, cik, err)
@@ -110,5 +116,5 @@ func GetConceptForCompanyGivenCIK(cik string) *Concept {
 		return nil
 	}
 
-	return &data.Facts.Concept
+	return &data.Facts
 }
