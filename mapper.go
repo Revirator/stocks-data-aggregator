@@ -26,27 +26,20 @@ func mapMetricToFinancialMetric(fact Metric) FinancialMetric {
 }
 
 func mapUnitsToFinancialEntries(units Units) []FinancialEntry {
-	result := []FinancialEntry{}
+	var entries []FinancialDataEntry
 	if len(units.PrimaryEntries) > 0 {
-		for _, entry := range units.PrimaryEntries {
-			result = append(result, FinancialEntry(entry))
-		}
-		return result
+		entries = units.PrimaryEntries
+	} else if len(units.SecondaryEntries) > 0 {
+		entries = units.SecondaryEntries
+	} else if len(units.TertiaryEntries) > 0 {
+		entries = units.TertiaryEntries
+	} else {
+		return []FinancialEntry{}
 	}
 
-	if len(units.SecondaryEntries) > 0 {
-		for _, entry := range units.SecondaryEntries {
-			result = append(result, FinancialEntry(entry))
-		}
-		return result
+	result := make([]FinancialEntry, len(entries))
+	for _, entry := range entries {
+		result = append(result, FinancialEntry(entry))
 	}
-
-	if len(units.TertiaryEntries) > 0 {
-		for _, entry := range units.TertiaryEntries {
-			result = append(result, FinancialEntry(entry))
-		}
-		return result
-	}
-
 	return result
 }

@@ -24,8 +24,8 @@ func ServerInit(hostAndPort string, database *Database) *Server {
 
 func (server *Server) Run() {
 	router := mux.NewRouter()
-	router.HandleFunc("/", server.homePage).Methods("GET")
-	router.HandleFunc("/stocks/{ticker}", server.stockPage).Methods("GET")
+	router.HandleFunc("/", server.showHomePage).Methods("GET")
+	router.HandleFunc("/stocks/{ticker}", server.showStockPage).Methods("GET")
 
 	router.MethodNotAllowedHandler = CustomerErrorHandler(
 		http.StatusMethodNotAllowed,
@@ -40,11 +40,11 @@ func (server *Server) Run() {
 	http.ListenAndServe(server.HostAndPort, router)
 }
 
-func (server *Server) homePage(writer http.ResponseWriter, request *http.Request) {
+func (server *Server) showHomePage(writer http.ResponseWriter, request *http.Request) {
 	WriteHTML(writer, http.StatusOK, "index.html", nil)
 }
 
-func (server *Server) stockPage(writer http.ResponseWriter, request *http.Request) {
+func (server *Server) showStockPage(writer http.ResponseWriter, request *http.Request) {
 	ticker := strings.ToUpper(mux.Vars(request)["ticker"])
 	stock, err := server.getStockByTicker(ticker)
 	if err != nil {

@@ -7,7 +7,7 @@ services:
       liquibase:
         condition: service_completed_successfully
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - ${SERVER_PORT}:${SERVER_PORT}
     links:
       - db
   db:
