@@ -41,7 +41,19 @@ func (server *Server) Run() {
 }
 
 func (server *Server) showHomePage(writer http.ResponseWriter, request *http.Request) {
-	WriteHTML(writer, http.StatusOK, "index.html", nil)
+	err := request.ParseForm()
+	if err != nil {
+		WriteHTML(writer, http.StatusInternalServerError, "error.html", "Could not parse form data! Please try again.")
+		return
+	}
+
+	input := request.Form.Get("searchBox")
+	if input == "" {
+		WriteHTML(writer, http.StatusOK, "index.html", nil)
+		return
+	}
+
+	http.Redirect(writer, request, fmt.Sprintf("/stocks/%s", input), http.StatusSeeOther)
 }
 
 func (server *Server) showStockPage(writer http.ResponseWriter, request *http.Request) {
@@ -75,9 +87,6 @@ func (server *Server) getStockByTicker(ticker string) (*Stock, *ServerError) {
 func WriteHTML(writer http.ResponseWriter, statusCode int, templateName string, value any) error {
 	writer.Header().Add("Content-Type", "text/html")
 	writer.WriteHeader(statusCode)
-	template, err := template.ParseFiles(fmt.Sprintf("./templates/%s", templateName))
-	if err != nil {
-		return err
-	}
+	template := template.Must(template.ParseFiles(fmt.Sprintf("./templates/%s", templateName)))
 	return template.Execute(writer, value)
 }
