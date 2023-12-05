@@ -24,14 +24,15 @@ func ServerInit(hostAndPort string, database *Database) *Server {
 
 func (server *Server) Run() {
 	router := mux.NewRouter()
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	router.HandleFunc("/", server.showHomePage).Methods("GET")
 	router.HandleFunc("/stocks/{ticker}", server.showStockPage).Methods("GET")
 
-	router.MethodNotAllowedHandler = CustomerErrorHandler(
+	router.MethodNotAllowedHandler = CustomErrorHandler(
 		http.StatusMethodNotAllowed,
 		"Method not allowed.",
 	)
-	router.NotFoundHandler = CustomerErrorHandler(
+	router.NotFoundHandler = CustomErrorHandler(
 		http.StatusNotFound,
 		"Page not found.",
 	)
@@ -87,6 +88,6 @@ func (server *Server) getStockByTicker(ticker string) (*Stock, *ServerError) {
 func WriteHTML(writer http.ResponseWriter, statusCode int, templateName string, value any) error {
 	writer.Header().Add("Content-Type", "text/html")
 	writer.WriteHeader(statusCode)
-	template := template.Must(template.ParseFiles(fmt.Sprintf("./templates/%s", templateName)))
+	template := template.Must(template.ParseFiles(fmt.Sprintf("./static/%s", templateName)))
 	return template.Execute(writer, value)
 }

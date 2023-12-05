@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <title>Stock Financials For Dummies</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+</head>
+
+<body>
+    <!-- TODO: add image -->
+    <div id="searchContainer">
+        <div id="searchBoxContainer">
+            <form id="searchForm" method="get" onsubmit="return validateSearch()">
+                <input id="searchBox" name="searchBox" type="text" autocomplete="off"
+                    placeholder="Enter the name of a company or its ticker...">
+            </form>
+            <button id="searchButton" type="submit" title="Search" form="searchForm">
+                <div id="searchIcon"></div>
+            </button>
+        </div>
+        <!-- TODO: have multiple lines (cap 5) if the button is pressed multiple times and make them disappear -->
+        <p id="invalidSearchWarning">* Required</p>
+    </div>
+</body>
+
+<script>
+    function validateSearch() {
+        if (document.getElementById("searchBox").value.trim() === "") {
+            document.getElementById("invalidSearchWarning").style.visibility = "visible";
+            return false;
+        }
+        return true;
+    }
+</script>
+
+</html>

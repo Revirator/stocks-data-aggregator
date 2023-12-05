@@ -1,0 +1,53 @@
+body {
+    height: 100svh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #222831;
+}
+
+/* TODO: play around with border radius and copy youtube? */
+#searchBoxContainer {
+    width: fit-content;
+    display: flex;
+}
+
+#searchBox {
+    height: 50px;
+    width: 500px;
+    padding: 0px 10px;
+    font-size: larger;
+    color: #ffffff;
+    background-color: #3d464b;
+    border: solid 1px #dddddd;
+    outline: none;
+}
+
+#searchButton {
+    height: 51.6px;
+    width: 51.6px;
+    cursor: pointer;
+    background-color: #3d464b;
+    border: solid 1px #dddddd;
+}
+
+#searchIcon {
+    height: 30px;
+    width: 30px;
+    padding: 4px 4px;
+    background-image: url("/static/media/search.webp");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+#invalidSearchWarning {
+    width: fit-content;
+    visibility: hidden;
+    margin: 4px 4px;
+    font-size: large;
+    font-style: italic;
+    color: #cf0000;
+    transition: visibility 0.5s ease-in-out;
+}

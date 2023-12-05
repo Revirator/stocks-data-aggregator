@@ -14,8 +14,7 @@ func InternalServerError() *ServerError {
 	}
 }
 
-// TODO: update template
-func CustomerErrorHandler(statusCode int, message string) http.HandlerFunc {
+func CustomErrorHandler(statusCode int, message string) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		WriteHTML(writer, statusCode, "error.html", message)
 	}

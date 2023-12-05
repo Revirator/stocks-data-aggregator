@@ -9,7 +9,7 @@ RUN go mod download
 COPY .env ./
 COPY *.go ./
 
-ADD templates /app/templates
+ADD static /app/static
 
 RUN go build -o /stocks-data-aggregator
 
