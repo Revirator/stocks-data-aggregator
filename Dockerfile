@@ -9,7 +9,7 @@ RUN go mod download
 COPY .env ./
 COPY *.go ./
 
-ADD static /app/static
+ADD static ./static
 
 RUN go build -o /stocks-data-aggregator
 
