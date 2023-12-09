@@ -1,14 +1,14 @@
 build:
-	go build -o bin/stocks-data-aggregator
+	go build -o bin/cfd
 
 run: build
-	./bin/stocks-data-aggregator
+	./bin/cfd
 
 test:
 	go test -v ./...
 
 deploy: 
-	docker build . -t "stocks-data-aggregator" && docker-compose --env-file .env up -d 
+	docker build . -t "cfd" && docker-compose --env-file .env up -d 
 
 stop:
 	docker-compose down

@@ -1,4 +1,4 @@
-module stocks-data-aggregator
+module cfd
 
 go 1.21.4
 

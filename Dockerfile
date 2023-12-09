@@ -11,8 +11,8 @@ COPY *.go ./
 
 ADD static ./static
 
-RUN go build -o /stocks-data-aggregator
+RUN go build -o /cfd
 
 EXPOSE 8080
 
-ENTRYPOINT ["/stocks-data-aggregator"]
+ENTRYPOINT ["/cfd"]

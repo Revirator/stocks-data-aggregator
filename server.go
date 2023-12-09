@@ -26,7 +26,7 @@ func (server *Server) Run() {
 	router := mux.NewRouter()
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	router.HandleFunc("/", server.showHomePage).Methods("GET")
-	router.HandleFunc("/stocks/{ticker}", server.showStockPage).Methods("GET")
+	router.HandleFunc("/companies/{ticker}", server.showCompanyPage).Methods("GET")
 
 	router.MethodNotAllowedHandler = CustomErrorHandler(
 		http.StatusMethodNotAllowed,
@@ -54,35 +54,36 @@ func (server *Server) showHomePage(writer http.ResponseWriter, request *http.Req
 		return
 	}
 
-	http.Redirect(writer, request, fmt.Sprintf("/stocks/%s", input), http.StatusSeeOther)
+	input = strings.ToUpper(input)
+	http.Redirect(writer, request, fmt.Sprintf("/companies/%s", input), http.StatusSeeOther)
 }
 
-func (server *Server) showStockPage(writer http.ResponseWriter, request *http.Request) {
+func (server *Server) showCompanyPage(writer http.ResponseWriter, request *http.Request) {
 	ticker := strings.ToUpper(mux.Vars(request)["ticker"])
-	stock, err := server.getStockByTicker(ticker)
+	company, err := server.getCompanyByTicker(ticker)
 	if err != nil {
 		WriteHTML(writer, err.StatusCode, "error.html", err.Message)
 		return
 	}
-	WriteHTML(writer, http.StatusOK, "stock.html", stock)
+	WriteHTML(writer, http.StatusOK, "company.html", company)
 }
 
-func (server *Server) getStockByTicker(ticker string) (*Stock, *ServerError) {
-	stock, err := server.Database.GetStockByTicker(ticker)
+func (server *Server) getCompanyByTicker(ticker string) (*Company, *ServerError) {
+	company, err := server.Database.GetCompanyByTicker(ticker)
 	if err != nil {
 		return nil, err
 	}
 
-	if stock.Financials == nil {
-		log.Printf("Requesting data from Edgar for stock with ticker '%s'", ticker)
-		facts := GetFinancialFactsForCompanyGivenCIK(stock.CIK)
+	if company.Financials == nil {
+		log.Printf("Requesting data from Edgar for company with ticker '%s'", ticker)
+		facts := GetFinancialFactsForCompanyGivenCIK(company.CIK)
 		if facts != nil {
-			stock.Financials = MapFinancialFactsToFinancialMetrics(facts)
-			server.Database.UpdateStockFinancialsByTicker(ticker, stock.Financials)
+			company.Financials = MapFinancialFactsToFinancialMetrics(facts)
+			server.Database.UpdateCompanyFinancialsByTicker(ticker, company.Financials)
 		}
 	}
 
-	return stock, nil
+	return company, nil
 }
 
 func WriteHTML(writer http.ResponseWriter, statusCode int, templateName string, value any) error {

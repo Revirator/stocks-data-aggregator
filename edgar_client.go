@@ -63,7 +63,7 @@ const (
 	EDGAR_COMPANY_DATA_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK%s.json"
 )
 
-const ERROR_LOG = "Could not retrieve financial data from Edgar for stock with CIK '%s'. Root cause:\n%s"
+const ERROR_LOG = "Could not retrieve financial data from Edgar for company with CIK '%s'. Root cause:\n%s"
 
 var Client = http.Client{Timeout: time.Second * 10}
 
@@ -104,7 +104,7 @@ func GetFinancialFactsForCompanyGivenCIK(cik string) *FinancialFacts {
 	}
 
 	if response.StatusCode != http.StatusOK {
-		log.Printf("Could not retrieve financial data from Edgar for stock with CIK '%s'", cik)
+		log.Printf("Could not retrieve financial data from Edgar for company with CIK '%s'", cik)
 		log.Printf("Instead got a response with statuc code %d and body:\n%s", response.StatusCode, string(body))
 		return nil
 	}
