@@ -89,6 +89,6 @@ func (server *Server) getCompanyByTicker(ticker string) (*Company, *ServerError)
 func WriteHTML(writer http.ResponseWriter, statusCode int, templateName string, value any) error {
 	writer.Header().Add("Content-Type", "text/html")
 	writer.WriteHeader(statusCode)
-	template := template.Must(template.ParseFiles(fmt.Sprintf("./static/%s", templateName)))
+	template := template.Must(template.ParseFiles(fmt.Sprintf("./templates/%s", templateName)))
 	return template.Execute(writer, value)
 }

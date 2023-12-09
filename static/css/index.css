@@ -1,3 +1,11 @@
+:root {
+    --background-color: #222831;
+    --container-background-color: #3d464b;
+    --border-color: #dddddd;
+    --text-color: #ffffff;
+    --placeholder-text-color: #cacaca;
+}
+
 body {
     height: 100svh;
     margin: 0;
@@ -5,7 +13,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #222831;
+    background-color: var(--background-color);
 }
 
 /* TODO: play around with border radius and copy youtube? */
@@ -19,18 +27,22 @@ body {
     width: 500px;
     padding: 0px 10px;
     font-size: larger;
-    color: #ffffff;
-    background-color: #3d464b;
-    border: solid 1px #dddddd;
+    color: var(--text-color);
+    background-color:  var(--container-background-color);
+    border: solid 1px var(--border-color);
     outline: none;
+}
+
+#searchBox::placeholder {
+    color: var(--placeholder-text-color);
 }
 
 #searchButton {
     height: 51.6px;
     width: 51.6px;
     cursor: pointer;
-    background-color: #3d464b;
-    border: solid 1px #dddddd;
+    background-color: var(--container-background-color);
+    border: solid 1px var(--border-color);
 }
 
 #searchIcon {
@@ -40,14 +52,4 @@ body {
     background-image: url("/static/media/search.webp");
     background-repeat: no-repeat;
     background-size: cover;
-}
-
-#invalidSearchWarning {
-    width: fit-content;
-    visibility: hidden;
-    margin: 4px 4px;
-    font-size: large;
-    font-style: italic;
-    color: #cf0000;
-    transition: visibility 0.5s ease-in-out;
 }

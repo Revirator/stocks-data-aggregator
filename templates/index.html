@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>Compamy Financials for Dummies</title>
+    <title>Company Financials for Dummies</title>
     <link rel="stylesheet" type="text/css" href="/static/css/index.css">
 </head>
 
@@ -20,18 +20,12 @@
                 <div id="searchIcon"></div>
             </button>
         </div>
-        <!-- TODO: have multiple lines (cap 5) if the button is pressed multiple times and make them disappear -->
-        <p id="invalidSearchWarning">* Required</p>
     </div>
 </body>
 
 <script>
     function validateSearch() {
-        if (document.getElementById("searchBox").value.trim() === "") {
-            document.getElementById("invalidSearchWarning").style.visibility = "visible";
-            return false;
-        }
-        return true;
+        return document.getElementById("searchBox").value.trim() != ""
     }
 </script>
 
