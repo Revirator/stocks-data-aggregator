@@ -1,0 +1,29 @@
+# Git
+.git/
+.gitignore
+
+# Liquibase
+db/
+
+# Docker
+Dockerfile
+docker-compose.yaml
+.dockerignore
+
+# Make
+Makefile
+
+# Volumes
+volumes/
+
+# Node
+**/node_modules/
+**/package-lock.json
+**/package.json
+**/tailwind.config.js
+
+# Templ
+**/*.templ
+
+# Other
+README.md
