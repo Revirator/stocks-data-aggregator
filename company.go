@@ -11,11 +11,13 @@ import (
 )
 
 type Company struct {
-	CIK        string                     `json:"cik"`
-	Ticker     string                     `json:"ticker"`
-	Name       string                     `json:"name"`
-	Exchange   string                     `json:"exchange"`
-	Financials map[string]FinancialMetric `json:"financials"`
+	CIK               string                     `json:"cik"`
+	Ticker            string                     `json:"ticker"`
+	Name              string                     `json:"name"`
+	Exchange          string                     `json:"exchange"`
+	Financials        map[string]FinancialMetric `json:"financials"`
+	StockPrice        float64                    `json:"stock_price"`
+	DayMovePercentage float64                    `json:"day_move_percentage"`
 }
 
 type FinancialMetric struct {

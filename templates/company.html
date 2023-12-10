@@ -8,9 +8,13 @@
     <link rel="stylesheet" type="text/css" href="/static/css/company.css">
 </head>
 
+<!-- TODO: add a section with more general information  -->
+
 <body>
-    <h1>{{ .Name }} ({{ .Ticker }})</h1>
-    <h2>{{ .Exchange }}</h2>
+    <h1 id="companyName">{{ .Name }} ({{ .Ticker }})</h1>
+    <p id="stockPrice" style="color: #4e9f3d;">{{ .StockPrice }} ({{ .DayMovePercentage }})</p>
+    <p id="stockPrice" style="color: #cf0000;">{{ .StockPrice }} ({{ .DayMovePercentage }})</p>
+    <!-- <h2>{{ .Exchange }}</h2>
     <h3>Financials:</h3>
     <ul>
         {{ range $key, $value := .Financials }}
@@ -20,7 +24,7 @@
             <p>{{ $value.Values }}</p>
         </li>
         {{ end }}
-    </ul>
+    </ul> -->
 </body>
 
 </html>

@@ -1,2 +1,29 @@
-/* color: #4e9f3d;
-color: #cf0000; */
+:root {
+    --background-color: #222831;
+    --container-background-color: #3d464b;
+    --border-color: #dddddd;
+    --text-color: #ffffff;
+    --placeholder-text-color: #cacaca;
+    --red-color: #cf0000;
+    --green-color: #4e9f3d;
+}
+
+body {
+    height: 100svh;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-column-gap: 10px;
+    grid-template-rows: max-content;
+    background-color: var(--background-color);
+}
+
+#companyName {
+    grid-column-start: 2;
+    color: var(--text-color);
+}
+
+#stockPrice {
+    grid-column-start: 2;
+    font-size: large;
+}

@@ -1,14 +1,9 @@
 package main
 
 import (
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
-	"os"
-	"time"
 )
 
 type EdgarEntry struct {
@@ -63,56 +58,14 @@ const (
 	EDGAR_COMPANY_DATA_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK%s.json"
 )
 
-const ERROR_LOG = "Could not retrieve financial data from Edgar for company with CIK '%s'. Root cause:\n%s"
-
-var Client = http.Client{Timeout: time.Second * 10}
-
 func GetFinancialFactsForCompanyGivenCIK(cik string) *FinancialFacts {
-	request, err := http.NewRequest("GET", fmt.Sprintf(EDGAR_COMPANY_DATA_URL, cik), nil)
-	if err != nil {
-		log.Printf(ERROR_LOG, cik, err)
-		return nil
-	}
-	request.Header.Add("User-Agent", os.Getenv("EMAIl"))
-	request.Header.Add("Accept-Encoding", "gzip, deflate")
+	request := PrepareRequest("GET", fmt.Sprintf(EDGAR_COMPANY_DATA_URL, cik))
 	request.Header.Add("Host", EDGAR_HOST)
-
-	response, err := Client.Do(request)
-	if err != nil {
-		log.Printf(ERROR_LOG, cik, err)
-		return nil
-	}
-	defer response.Body.Close()
-
-	var reader io.Reader
-	switch response.Header.Get("Content-Encoding") {
-	case "gzip":
-		reader, err = gzip.NewReader(response.Body)
-		if err != nil {
-			log.Printf(ERROR_LOG, cik, err)
-			return nil
-		}
-		defer reader.(*gzip.Reader).Close()
-	default:
-		reader = response.Body
-	}
-
-	body, err := io.ReadAll(reader)
-	if err != nil {
-		log.Printf(ERROR_LOG, cik, err)
-		return nil
-	}
-
-	if response.StatusCode != http.StatusOK {
-		log.Printf("Could not retrieve financial data from Edgar for company with CIK '%s'", cik)
-		log.Printf("Instead got a response with statuc code %d and body:\n%s", response.StatusCode, string(body))
-		return nil
-	}
+	body := SendRequestAndGetBody(request)
 
 	data := EdgarEntry{}
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		log.Printf(ERROR_LOG, cik, err)
+	if err := json.Unmarshal(body, &data); err != nil {
+		log.Println(err)
 		return nil
 	}
 

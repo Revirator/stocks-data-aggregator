@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"strings"
 	"text/template"
@@ -75,12 +76,19 @@ func (server *Server) getCompanyByTicker(ticker string) (*Company, *ServerError)
 	}
 
 	if company.Financials == nil {
-		log.Printf("Requesting data from Edgar for company with ticker '%s'", ticker)
+		log.Printf("Requesting data from 'sec.gov' for company with ticker '%s'", ticker)
 		facts := GetFinancialFactsForCompanyGivenCIK(company.CIK)
 		if facts != nil {
 			company.Financials = MapFinancialFactsToFinancialMetrics(facts)
 			server.Database.UpdateCompanyFinancialsByTicker(ticker, company.Financials)
 		}
+	}
+
+	log.Printf("Requesting metadata from 'finance.yahoo.com' for company with ticker '%s'", ticker)
+	metadata := GetCompanyMetadataGivenTicker(ticker)
+	if metadata != nil {
+		company.StockPrice = metadata.RegularMarketPrice
+		company.DayMovePercentage = calculateDayMovePercentage(metadata)
 	}
 
 	return company, nil
@@ -89,6 +97,11 @@ func (server *Server) getCompanyByTicker(ticker string) (*Company, *ServerError)
 func WriteHTML(writer http.ResponseWriter, statusCode int, templateName string, value any) error {
 	writer.Header().Add("Content-Type", "text/html")
 	writer.WriteHeader(statusCode)
-	template := template.Must(template.ParseFiles(fmt.Sprintf("./templates/%s", templateName)))
-	return template.Execute(writer, value)
+	tmpl := template.Must(template.ParseFiles(fmt.Sprintf("./templates/%s", templateName)))
+	return tmpl.Execute(writer, value)
+}
+
+func calculateDayMovePercentage(metadata *CompanyMetadata) float64 {
+	dayMovePercentage := 100 * (metadata.RegularMarketPrice - metadata.ChartPreviousClose) / metadata.ChartPreviousClose
+	return math.Round(dayMovePercentage*100) / 100
 }
