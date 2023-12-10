@@ -1,6 +1,7 @@
 # Go
 bin/
 go.sum
+*_templ.go
 
 # Local files
 .env
