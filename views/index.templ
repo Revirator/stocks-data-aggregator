@@ -1,0 +1,38 @@
+package views
+
+// TODO: add image
+templ Index() {
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+        <title>Company Financials for Dummies</title>
+        <link rel="stylesheet" type="text/css" href="/public/css/index.css" />
+    </head>
+
+    <body>
+        @searchContainer()
+    </body>
+
+    <script>
+        function validateSearch() {
+            return document.getElementById("searchBox").value.trim() != ""
+        }
+    </script>
+
+    </html>
+}
+
+templ searchContainer() {
+    <div id="searchBoxContainer">
+        <form id="searchForm" method="get" onsubmit="return validateSearch()">
+            <input id="searchBox" name="searchBox" type="text" autocomplete="off"
+                placeholder="Enter the name of a company or its ticker..." />
+        </form>
+        <button id="searchButton" type="submit" title="Search" form="searchForm">
+            <div id="searchIcon"></div>
+        </button>
+    </div>
+}

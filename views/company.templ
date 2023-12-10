@@ -1,0 +1,43 @@
+package views
+
+import (
+    "fmt"
+
+    "github.com/revirator/cfd/companydb"
+)
+
+
+// TODO: add a section with more general information
+templ Company(company *companydb.Company, stockPrice, dayMovePercentage float64) {
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+        <title>Company Financials for Dummies</title>
+        <link rel="stylesheet" type="text/css" href="/public/css/company.css" />
+    </head>
+
+    <body>
+        <h1 id="companyName">{ company.Name } ({ company.Ticker })</h1>
+        if dayMovePercentage > 0 {
+            <p id="stockPrice" style="color: #4e9f3d;">{ fmt.Sprintf("%f", stockPrice) } ({ fmt.Sprintf("+%f", dayMovePercentage) })</p>
+        } else {
+            <p id="stockPrice" style="color: #cf0000;">{ fmt.Sprintf("%f", stockPrice) } ({ fmt.Sprintf("%f", dayMovePercentage) })</p>
+        }
+        <!-- <h2>{{ .Exchange }}</h2>
+        <h3>Financials:</h3>
+        <ul>
+            {{ range $key, $value := .Financials }}
+            <li>
+                <p><b>{{ $value.Label }}</b></p>
+                <p>{{ $value.Description }}</p>
+                <p>{{ $value.Values }}</p>
+            </li>
+            {{ end }}
+        </ul> -->
+    </body>
+
+    </html>
+}

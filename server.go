@@ -6,17 +6,18 @@ import (
 	"math"
 	"net/http"
 	"strings"
-	"text/template"
 
 	"github.com/gorilla/mux"
+	"github.com/revirator/cfd/companydb"
+	"github.com/revirator/cfd/views"
 )
 
 type Server struct {
 	HostAndPort string
-	Database    *Database
+	Database    companydb.CompanyDatabase
 }
 
-func ServerInit(hostAndPort string, database *Database) *Server {
+func ServerInit(hostAndPort string, database companydb.CompanyDatabase) *Server {
 	return &Server{
 		HostAndPort: hostAndPort,
 		Database:    database,
@@ -25,7 +26,7 @@ func ServerInit(hostAndPort string, database *Database) *Server {
 
 func (server *Server) Run() {
 	router := mux.NewRouter()
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 	router.HandleFunc("/", server.showHomePage).Methods("GET")
 	router.HandleFunc("/companies/{ticker}", server.showCompanyPage).Methods("GET")
 
@@ -42,37 +43,36 @@ func (server *Server) Run() {
 	http.ListenAndServe(server.HostAndPort, router)
 }
 
-func (server *Server) showHomePage(writer http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
+func (server *Server) showHomePage(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
 	if err != nil {
-		WriteHTML(writer, http.StatusInternalServerError, "error.html", "Could not parse form data! Please try again.")
+		w.WriteHeader(http.StatusInternalServerError)
+		views.Error("Could not parse form data! Please try again.").Render(r.Context(), w)
 		return
 	}
 
-	input := request.Form.Get("searchBox")
+	input := r.Form.Get("searchBox")
 	if input == "" {
-		WriteHTML(writer, http.StatusOK, "index.html", nil)
+		views.Index().Render(r.Context(), w)
 		return
 	}
 
 	input = strings.ToUpper(input)
-	http.Redirect(writer, request, fmt.Sprintf("/companies/%s", input), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/companies/%s", input), http.StatusSeeOther)
 }
 
-func (server *Server) showCompanyPage(writer http.ResponseWriter, request *http.Request) {
-	ticker := strings.ToUpper(mux.Vars(request)["ticker"])
-	company, err := server.getCompanyByTicker(ticker)
-	if err != nil {
-		WriteHTML(writer, err.StatusCode, "error.html", err.Message)
-		return
-	}
-	WriteHTML(writer, http.StatusOK, "company.html", company)
-}
-
-func (server *Server) getCompanyByTicker(ticker string) (*Company, *ServerError) {
+func (server *Server) showCompanyPage(w http.ResponseWriter, r *http.Request) {
+	ticker := strings.ToUpper(mux.Vars(r)["ticker"])
 	company, err := server.Database.GetCompanyByTicker(ticker)
 	if err != nil {
-		return nil, err
+		if err.Error() == "stock missing" {
+			w.WriteHeader(http.StatusNotFound)
+			views.Error(fmt.Sprintf("Company with ticker '%s' does not exist or is not listed on any of the US exchanges.", ticker)).Render(r.Context(), w)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			views.Error("Something went wrong! Please try again later.").Render(r.Context(), w)
+		}
+		return
 	}
 
 	if company.Financials == nil {
@@ -80,25 +80,20 @@ func (server *Server) getCompanyByTicker(ticker string) (*Company, *ServerError)
 		facts := GetFinancialFactsForCompanyGivenCIK(company.CIK)
 		if facts != nil {
 			company.Financials = MapFinancialFactsToFinancialMetrics(facts)
-			server.Database.UpdateCompanyFinancialsByTicker(ticker, company.Financials)
+			err = server.Database.UpdateCompanyFinancialsByTicker(ticker, company.Financials)
+			log.Fatal(err)
 		}
 	}
 
+	var stockPrice, dayMovePercentage float64
 	log.Printf("Requesting metadata from 'finance.yahoo.com' for company with ticker '%s'", ticker)
 	metadata := GetCompanyMetadataGivenTicker(ticker)
 	if metadata != nil {
-		company.StockPrice = metadata.RegularMarketPrice
-		company.DayMovePercentage = calculateDayMovePercentage(metadata)
+		stockPrice = metadata.RegularMarketPrice
+		dayMovePercentage = calculateDayMovePercentage(metadata)
 	}
 
-	return company, nil
-}
-
-func WriteHTML(writer http.ResponseWriter, statusCode int, templateName string, value any) error {
-	writer.Header().Add("Content-Type", "text/html")
-	writer.WriteHeader(statusCode)
-	tmpl := template.Must(template.ParseFiles(fmt.Sprintf("./templates/%s", templateName)))
-	return tmpl.Execute(writer, value)
+	views.Company(company, stockPrice, dayMovePercentage).Render(r.Context(), w)
 }
 
 func calculateDayMovePercentage(metadata *CompanyMetadata) float64 {

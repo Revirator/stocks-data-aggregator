@@ -6,13 +6,9 @@ COPY go.* ./
 
 RUN go mod download
 
-COPY .env ./
-COPY *.go ./
+COPY . .
 
 RUN go build -o /cfd
-
-ADD templates ./templates
-ADD static ./static
 
 EXPOSE 8080
 

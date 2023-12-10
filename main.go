@@ -1,10 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/revirator/cfd/companydb"
 )
 
 func main() {
@@ -14,12 +16,17 @@ func main() {
 	}
 
 	connectionString := os.ExpandEnv("postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}")
-	db, err := DatabaseInit(connectionString)
-	if err != nil {
-		log.Fatal(err)
-	}
+	db := databaseInit(connectionString)
 
 	hostAndPort := os.ExpandEnv("${SERVER_HOST}:${SERVER_PORT}")
-	server := ServerInit(hostAndPort, db)
+	server := ServerInit(hostAndPort, companydb.NewCompanyDatabse(db))
 	server.Run()
+}
+
+func databaseInit(connectionString string) *sql.DB {
+	if db, err := sql.Open("postgres", connectionString); err != nil {
+		panic(err)
+	} else {
+		return db
+	}
 }

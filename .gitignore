@@ -5,3 +5,6 @@ go.sum
 # Local files
 .env
 volumes/
+
+# Node
+node_modules/

@@ -1,7 +1,9 @@
 package main
 
-func MapFinancialFactsToFinancialMetrics(facts *FinancialFacts) map[string]FinancialMetric {
-	return map[string]FinancialMetric{
+import "github.com/revirator/cfd/companydb"
+
+func MapFinancialFactsToFinancialMetrics(facts *FinancialFacts) map[string]companydb.FinancialMetric {
+	return map[string]companydb.FinancialMetric{
 		"Cash":                                  mapMetricToFinancialMetric(facts.Principles.Cash),
 		"CashAndCashEquivalentsAtCarryingValue": mapMetricToFinancialMetric(facts.Principles.CashAndCashEquivalentsAtCarryingValue),
 		"CommonStockSharesOutstanding":          mapMetricToFinancialMetric(facts.Principles.CommonStockSharesOutstanding),
@@ -17,15 +19,15 @@ func MapFinancialFactsToFinancialMetrics(facts *FinancialFacts) map[string]Finan
 	}
 }
 
-func mapMetricToFinancialMetric(fact Metric) FinancialMetric {
-	return FinancialMetric{
+func mapMetricToFinancialMetric(fact Metric) companydb.FinancialMetric {
+	return companydb.FinancialMetric{
 		Label:       fact.Label,
 		Description: fact.Description,
 		Values:      mapUnitsToFinancialEntries(fact.Units),
 	}
 }
 
-func mapUnitsToFinancialEntries(units Units) []FinancialEntry {
+func mapUnitsToFinancialEntries(units Units) []companydb.FinancialEntry {
 	var entries []FinancialDataEntry
 	if len(units.PrimaryEntries) > 0 {
 		entries = units.PrimaryEntries
@@ -34,12 +36,12 @@ func mapUnitsToFinancialEntries(units Units) []FinancialEntry {
 	} else if len(units.TertiaryEntries) > 0 {
 		entries = units.TertiaryEntries
 	} else {
-		return []FinancialEntry{}
+		return []companydb.FinancialEntry{}
 	}
 
-	result := make([]FinancialEntry, len(entries))
+	result := make([]companydb.FinancialEntry, len(entries))
 	for _, entry := range entries {
-		result = append(result, FinancialEntry(entry))
+		result = append(result, companydb.FinancialEntry(entry))
 	}
 	return result
 }

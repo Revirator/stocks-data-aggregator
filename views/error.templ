@@ -1,0 +1,23 @@
+package views
+
+// TODO: update with image and change heading
+templ Error(message string) {
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+        <title>Company Financials for Dummies</title>
+        <link rel="stylesheet" type="text/css" href="/public/css/error.css" />
+    </head>
+
+    <body>
+        <p id="errorMessage">{ message }</p>
+        <a href="/">
+            <button id="homeButton">Back to Home</button>
+        </a>
+    </body>
+
+    </html>
+}
