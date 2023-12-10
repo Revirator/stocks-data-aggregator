@@ -1,8 +1,11 @@
 package main
 
-import "github.com/revirator/cfd/companydb"
+import (
+	"github.com/revirator/cfd/clients"
+	"github.com/revirator/cfd/companydb"
+)
 
-func MapFinancialFactsToFinancialMetrics(facts *FinancialFacts) map[string]companydb.FinancialMetric {
+func MapFinancialFactsToFinancialMetrics(facts *clients.FinancialFacts) map[string]companydb.FinancialMetric {
 	return map[string]companydb.FinancialMetric{
 		"Cash":                                  mapMetricToFinancialMetric(facts.Principles.Cash),
 		"CashAndCashEquivalentsAtCarryingValue": mapMetricToFinancialMetric(facts.Principles.CashAndCashEquivalentsAtCarryingValue),
@@ -19,7 +22,7 @@ func MapFinancialFactsToFinancialMetrics(facts *FinancialFacts) map[string]compa
 	}
 }
 
-func mapMetricToFinancialMetric(fact Metric) companydb.FinancialMetric {
+func mapMetricToFinancialMetric(fact clients.Metric) companydb.FinancialMetric {
 	return companydb.FinancialMetric{
 		Label:       fact.Label,
 		Description: fact.Description,
@@ -27,8 +30,8 @@ func mapMetricToFinancialMetric(fact Metric) companydb.FinancialMetric {
 	}
 }
 
-func mapUnitsToFinancialEntries(units Units) []companydb.FinancialEntry {
-	var entries []FinancialDataEntry
+func mapUnitsToFinancialEntries(units clients.Units) []companydb.FinancialEntry {
+	var entries []clients.FinancialDataEntry
 	if len(units.PrimaryEntries) > 0 {
 		entries = units.PrimaryEntries
 	} else if len(units.SecondaryEntries) > 0 {

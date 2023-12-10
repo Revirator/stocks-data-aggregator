@@ -1,4 +1,4 @@
-package main
+package clients
 
 import (
 	"encoding/json"
@@ -65,7 +65,7 @@ func GetFinancialFactsForCompanyGivenCIK(cik string) *FinancialFacts {
 
 	data := EdgarEntry{}
 	if err := json.Unmarshal(body, &data); err != nil {
-		log.Println(err)
+		log.Fatal(err)
 		return nil
 	}
 

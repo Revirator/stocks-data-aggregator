@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/revirator/cfd/clients"
 	"github.com/revirator/cfd/companydb"
 	"github.com/revirator/cfd/views"
 )
@@ -77,17 +78,16 @@ func (server *Server) showCompanyPage(w http.ResponseWriter, r *http.Request) {
 
 	if company.Financials == nil {
 		log.Printf("Requesting data from 'sec.gov' for company with ticker '%s'", ticker)
-		facts := GetFinancialFactsForCompanyGivenCIK(company.CIK)
+		facts := clients.GetFinancialFactsForCompanyGivenCIK(company.CIK)
 		if facts != nil {
 			company.Financials = MapFinancialFactsToFinancialMetrics(facts)
-			err = server.Database.UpdateCompanyFinancialsByTicker(ticker, company.Financials)
-			log.Fatal(err)
+			server.Database.UpdateCompanyFinancialsByTicker(ticker, company.Financials)
 		}
 	}
 
 	var stockPrice, dayMovePercentage float64
 	log.Printf("Requesting metadata from 'finance.yahoo.com' for company with ticker '%s'", ticker)
-	metadata := GetCompanyMetadataGivenTicker(ticker)
+	metadata := clients.GetCompanyMetadataGivenTicker(ticker)
 	if metadata != nil {
 		stockPrice = metadata.RegularMarketPrice
 		dayMovePercentage = calculateDayMovePercentage(metadata)
@@ -96,7 +96,7 @@ func (server *Server) showCompanyPage(w http.ResponseWriter, r *http.Request) {
 	views.Company(company, stockPrice, dayMovePercentage).Render(r.Context(), w)
 }
 
-func calculateDayMovePercentage(metadata *CompanyMetadata) float64 {
+func calculateDayMovePercentage(metadata *clients.CompanyMetadata) float64 {
 	dayMovePercentage := 100 * (metadata.RegularMarketPrice - metadata.ChartPreviousClose) / metadata.ChartPreviousClose
 	return math.Round(dayMovePercentage*100) / 100
 }

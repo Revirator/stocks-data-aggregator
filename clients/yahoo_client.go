@@ -1,4 +1,4 @@
-package main
+package clients
 
 import (
 	"encoding/json"
@@ -31,7 +31,7 @@ func GetCompanyMetadataGivenTicker(ticker string) *CompanyMetadata {
 
 	data := YahooEntry{}
 	if err := json.Unmarshal(body, &data); err != nil {
-		log.Println(err)
+		log.Fatal(err)
 		return nil
 	}
 

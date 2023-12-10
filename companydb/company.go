@@ -4,16 +4,17 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log"
 
 	_ "github.com/lib/pq"
 )
 
 type Company struct {
-	CIK               string                     `json:"cik"`
-	Ticker            string                     `json:"ticker"`
-	Name              string                     `json:"name"`
-	Exchange          string                     `json:"exchange"`
-	Financials        map[string]FinancialMetric `json:"financials"`
+	CIK        string                     `json:"cik"`
+	Ticker     string                     `json:"ticker"`
+	Name       string                     `json:"name"`
+	Exchange   string                     `json:"exchange"`
+	Financials map[string]FinancialMetric `json:"financials"`
 }
 
 type FinancialMetric struct {
@@ -73,13 +74,14 @@ func (database CompanyDatabase) GetCompanyByTicker(ticker string) (*Company, err
 	return company, nil
 }
 
-func (database CompanyDatabase) UpdateCompanyFinancialsByTicker(ticker string, financials map[string]FinancialMetric) error {
+func (database CompanyDatabase) UpdateCompanyFinancialsByTicker(ticker string, financials map[string]FinancialMetric) {
 	financialData, err := json.Marshal(financials)
 	if err != nil {
-		return err
+		log.Fatal(err)
+		return
 	}
 
 	query := "UPDATE COMPANIES SET FINANCIALS = $1 WHERE TICKER = $2"
 	_, err = database.db.Exec(query, financialData, ticker)
-	return err
+	log.Fatal(err)
 }
