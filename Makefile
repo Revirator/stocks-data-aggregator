@@ -8,7 +8,7 @@ test:
 	go test -v ./...
 
 deploy: 
-	templ generate && docker build . -t "cfd" && docker-compose --env-file .env up -d 
+	docker build . -t "cfd" && docker-compose --env-file .env up -d 
 
 stop:
 	docker-compose down
