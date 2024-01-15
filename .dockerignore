@@ -25,5 +25,9 @@ volumes/
 # Templ
 **/*.templ
 
+# IDE
+.idea/
+.vscode/
+
 # Other
 README.md

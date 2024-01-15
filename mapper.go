@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/revirator/cfd/clients"
-	"github.com/revirator/cfd/companydb"
+	"github.com/revirator/cfd/external"
+	"github.com/revirator/cfd/model"
 )
 
-func MapFinancialFactsToFinancialMetrics(facts *clients.FinancialFacts) map[string]companydb.FinancialMetric {
-	return map[string]companydb.FinancialMetric{
+func MapFinancialFactsToFinancialMetrics(facts *external.FinancialFacts) map[string]model.FinancialMetric {
+	return map[string]model.FinancialMetric{
 		"Cash":                                  mapMetricToFinancialMetric(facts.Principles.Cash),
 		"CashAndCashEquivalentsAtCarryingValue": mapMetricToFinancialMetric(facts.Principles.CashAndCashEquivalentsAtCarryingValue),
 		"CommonStockSharesOutstanding":          mapMetricToFinancialMetric(facts.Principles.CommonStockSharesOutstanding),
@@ -22,16 +22,16 @@ func MapFinancialFactsToFinancialMetrics(facts *clients.FinancialFacts) map[stri
 	}
 }
 
-func mapMetricToFinancialMetric(fact clients.Metric) companydb.FinancialMetric {
-	return companydb.FinancialMetric{
+func mapMetricToFinancialMetric(fact external.Metric) model.FinancialMetric {
+	return model.FinancialMetric{
 		Label:       fact.Label,
 		Description: fact.Description,
 		Values:      mapUnitsToFinancialEntries(fact.Units),
 	}
 }
 
-func mapUnitsToFinancialEntries(units clients.Units) []companydb.FinancialEntry {
-	var entries []clients.FinancialDataEntry
+func mapUnitsToFinancialEntries(units external.Units) []model.FinancialEntry {
+	var entries []external.FinancialDataEntry
 	if len(units.PrimaryEntries) > 0 {
 		entries = units.PrimaryEntries
 	} else if len(units.SecondaryEntries) > 0 {
@@ -39,12 +39,12 @@ func mapUnitsToFinancialEntries(units clients.Units) []companydb.FinancialEntry 
 	} else if len(units.TertiaryEntries) > 0 {
 		entries = units.TertiaryEntries
 	} else {
-		return []companydb.FinancialEntry{}
+		return []model.FinancialEntry{}
 	}
 
-	result := make([]companydb.FinancialEntry, len(entries))
+	result := make([]model.FinancialEntry, len(entries))
 	for _, entry := range entries {
-		result = append(result, companydb.FinancialEntry(entry))
+		result = append(result, model.FinancialEntry(entry))
 	}
 	return result
 }

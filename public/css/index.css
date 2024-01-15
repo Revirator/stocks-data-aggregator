@@ -20,6 +20,7 @@ body {
 #searchBoxContainer {
     width: fit-content;
     display: flex;
+    border: solid 1px var(--border-color);
 }
 
 #searchBox {
@@ -29,7 +30,7 @@ body {
     font-size: larger;
     color: var(--text-color);
     background-color:  var(--container-background-color);
-    border: solid 1px var(--border-color);
+    border: none;
     outline: none;
 }
 
@@ -38,11 +39,10 @@ body {
 }
 
 #searchButton {
-    height: 51.6px;
-    width: 51.6px;
     cursor: pointer;
     background-color: var(--container-background-color);
-    border: solid 1px var(--border-color);
+    border: none;
+    border-left: solid 1px var(--border-color);
 }
 
 #searchIcon {

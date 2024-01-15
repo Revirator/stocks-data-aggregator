@@ -1,4 +1,4 @@
-package clients
+package external
 
 import (
 	"encoding/json"
@@ -59,13 +59,13 @@ const (
 )
 
 func GetFinancialFactsForCompanyGivenCIK(cik string) *FinancialFacts {
-	request := PrepareRequest("GET", fmt.Sprintf(EDGAR_COMPANY_DATA_URL, cik))
+	request := prepareRequest("GET", fmt.Sprintf(EDGAR_COMPANY_DATA_URL, cik))
 	request.Header.Add("Host", EDGAR_HOST)
-	body := SendRequestAndGetBody(request)
+	body := sendRequestAndGetBody(request)
 
 	data := EdgarEntry{}
 	if err := json.Unmarshal(body, &data); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return nil
 	}
 

@@ -13,9 +13,7 @@
             <column name="NAME" type="nvarchar(255)">
                 <constraints nullable="false" />
             </column>
-            <column name="EXCHANGE" type="nvarchar(32)">
-                <constraints nullable="false" />
-            </column>
+            <column name="EXCHANGE" type="nvarchar(32)" />
             <column name="FINANCIALS" type="bytea" />
         </createTable>
 

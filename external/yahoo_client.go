@@ -1,4 +1,4 @@
-package clients
+package external
 
 import (
 	"encoding/json"
@@ -26,12 +26,12 @@ type CompanyMetadata struct {
 const YAHOO_COMPANY_METADATA_URL = "https://query1.finance.yahoo.com/v8/finance/chart/%s?interval=1d&range=1d"
 
 func GetCompanyMetadataGivenTicker(ticker string) *CompanyMetadata {
-	request := PrepareRequest("GET", fmt.Sprintf(YAHOO_COMPANY_METADATA_URL, ticker))
-	body := SendRequestAndGetBody(request)
+	request := prepareRequest("GET", fmt.Sprintf(YAHOO_COMPANY_METADATA_URL, ticker))
+	body := sendRequestAndGetBody(request)
 
 	data := YahooEntry{}
 	if err := json.Unmarshal(body, &data); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return nil
 	}
 

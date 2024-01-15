@@ -7,7 +7,6 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/revirator/cfd/companydb"
 )
 
 func main() {
@@ -20,7 +19,7 @@ func main() {
 	db := databaseInit(connectionString)
 
 	hostAndPort := os.ExpandEnv("${SERVER_HOST}:${SERVER_PORT}")
-	server := ServerInit(hostAndPort, companydb.NewCompanyDatabse(db))
+	server := ServerInit(hostAndPort, db)
 	server.Run()
 }
 
