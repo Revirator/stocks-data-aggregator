@@ -4,7 +4,7 @@ type Company struct {
 	CIK        string                     `json:"cik"`
 	Ticker     string                     `json:"ticker"`
 	Name       string                     `json:"name"`
-	Exchange   string                     `json:"exchange"`
+	Exchange   *string                    `json:"exchange"`
 	Financials map[string]FinancialMetric `json:"financials"`
 }
 

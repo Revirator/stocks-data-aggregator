@@ -28,8 +28,10 @@ templ Company(company *model.Company, stockPrice, dayMovePercentage float64) {
                 <p id="stockPrice" style="color: #cf0000;">{ fmt.Sprintf("%.2f", stockPrice) } ({ fmt.Sprintf("%.2f%%", dayMovePercentage) })</p>
             }
         }
-        <!-- <h2>{{ .Exchange }}</h2>
-        <h3>Financials:</h3>
+        if company.Exchange != nil {
+            <h2 id="stockExchange">{ *company.Exchange }</h2>
+        }
+        <!-- <h3>Financials:</h3>
         <ul>
             {{ range $key, $value := .Financials }}
             <li>

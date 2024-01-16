@@ -112,13 +112,13 @@ func getCompanyByTicker(ticker string, db *sql.DB) (*model.Company, error) {
 		return nil, errors.New("Company missing")
 	}
 
-	var financialData sql.NullString
+	var exchange, financialData sql.NullString
 	company := &model.Company{}
 	err = rows.Scan(
 		&company.Ticker,
 		&company.CIK,
 		&company.Name,
-		&company.Exchange,
+		&exchange,
 		&financialData,
 	)
 	if err != nil {
@@ -132,6 +132,7 @@ func getCompanyByTicker(ticker string, db *sql.DB) (*model.Company, error) {
 		}
 	}
 
+	company.Exchange = &exchange.String
 	return company, nil
 }
 
