@@ -2,26 +2,28 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/revirator/cfd/companydb"
 	"github.com/revirator/cfd/external"
+	"github.com/revirator/cfd/model"
 	"github.com/revirator/cfd/view"
 )
 
 type Server struct {
 	HostAndPort string
-	Database    companydb.CompanyDatabase
+	Database    *sql.DB
 }
 
 func ServerInit(hostAndPort string, db *sql.DB) *Server {
 	return &Server{
 		HostAndPort: hostAndPort,
-		Database:    companydb.CompanyDatabase{DB: db},
+		Database:    db,
 	}
 }
 
@@ -64,11 +66,12 @@ func (server *Server) showHomePage(w http.ResponseWriter, r *http.Request) {
 
 func (server *Server) showCompanyPage(w http.ResponseWriter, r *http.Request) {
 	ticker := strings.ToUpper(mux.Vars(r)["ticker"])
-	company, err := server.Database.GetCompanyByTicker(ticker)
+	company, err := getCompanyByTicker(ticker, server.Database)
 	if err != nil {
-		if err.Error() == "company missing" {
+		if err.Error() == "Company missing" {
+			errorMessage := "Company with ticker '%s' does not exist or is not listed on any of the US exchanges."
 			w.WriteHeader(http.StatusNotFound)
-			view.Error(fmt.Sprintf("Company with ticker '%s' does not exist or is not listed on any of the US exchanges.", ticker)).Render(r.Context(), w)
+			view.Error(fmt.Sprintf(errorMessage, ticker)).Render(r.Context(), w)
 		} else {
 			log.Printf("Error when retrieving information for company with ticker '%s'. Root cause:\n%s", ticker, err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -82,7 +85,7 @@ func (server *Server) showCompanyPage(w http.ResponseWriter, r *http.Request) {
 		facts := external.GetFinancialFactsForCompanyGivenCIK(company.CIK)
 		if facts != nil {
 			company.Financials = MapFinancialFactsToFinancialMetrics(facts)
-			server.Database.UpdateCompanyFinancialsByTicker(ticker, company.Financials)
+			updateCompanyFinancialsByTicker(ticker, company.Financials, server.Database)
 		}
 	}
 
@@ -95,4 +98,53 @@ func (server *Server) showCompanyPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	view.Company(company, stockPrice, percentageChange).Render(r.Context(), w)
+}
+
+func getCompanyByTicker(ticker string, db *sql.DB) (*model.Company, error) {
+	query := "SELECT * FROM COMPANIES WHERE TICKER = $1"
+	rows, err := db.Query(query, ticker)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !rows.Next() {
+		return nil, errors.New("Company missing")
+	}
+
+	var financialData sql.NullString
+	company := &model.Company{}
+	err = rows.Scan(
+		&company.Ticker,
+		&company.CIK,
+		&company.Name,
+		&company.Exchange,
+		&financialData,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if financialData.Valid {
+		err = json.Unmarshal([]byte(financialData.String), &company.Financials)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return company, nil
+}
+
+func updateCompanyFinancialsByTicker(ticker string, financials map[string]model.FinancialMetric, db *sql.DB) {
+	financialData, err := json.Marshal(financials)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	query := "UPDATE COMPANIES SET FINANCIALS = $1 WHERE TICKER = $2"
+	_, err = db.Exec(query, financialData, ticker)
+	if err != nil {
+		log.Println(err)
+	}
 }

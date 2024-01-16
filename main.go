@@ -15,15 +15,14 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	connectionString := os.ExpandEnv("postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}")
-	db := databaseInit(connectionString)
-
 	hostAndPort := os.ExpandEnv("${SERVER_HOST}:${SERVER_PORT}")
+	db := databaseInit()
 	server := ServerInit(hostAndPort, db)
 	server.Run()
 }
 
-func databaseInit(connectionString string) *sql.DB {
+func databaseInit() *sql.DB {
+	connectionString := os.ExpandEnv("postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}")
 	if db, err := sql.Open("postgres", connectionString); err != nil {
 		panic(err)
 	} else {
