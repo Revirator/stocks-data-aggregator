@@ -1,47 +1,57 @@
 package view
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/revirator/cfd/model"
+	"github.com/revirator/cfd/model"
 )
 
-
 // TODO: add a section with more general information
+
 templ Company(company *model.Company, stockPrice, dayMovePercentage float64) {
-    <!DOCTYPE html>
-    <html lang="en">
-
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-        <title>Company Financials for Dummies</title>
-        <link rel="stylesheet" type="text/css" href="/public/css/company.css" />
-    </head>
-
-    <body>
-        <h1 id="companyName">{ company.Name } ({ company.Ticker })</h1>
-        if stockPrice > 0 {
-            if dayMovePercentage >= 0 {
-                <p id="stockPrice" style="color: #4e9f3d;">{ fmt.Sprintf("%.2f", stockPrice) } ({ fmt.Sprintf("+%.2f%%", dayMovePercentage) })</p>
-            } else {
-                <p id="stockPrice" style="color: #cf0000;">{ fmt.Sprintf("%.2f", stockPrice) } ({ fmt.Sprintf("%.2f%%", dayMovePercentage) })</p>
-            }
-        }
-        if company.Exchange != nil {
-            <h2 id="stockExchange">{ *company.Exchange }</h2>
-        }
-        <!-- <h3>Financials:</h3>
-        <ul>
-            {{ range $key, $value := .Financials }}
-            <li>
-                <p><b>{{ $value.Label }}</b></p>
-                <p>{{ $value.Description }}</p>
-                <p>{{ $value.Values }}</p>
-            </li>
-            {{ end }}
-        </ul> -->
-    </body>
-
-    </html>
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+			<title>Company Financials for Dummies</title>
+			<link rel="stylesheet" type="text/css" href="/public/css/company.css"/>
+		</head>
+		<body>
+			<div id="fundamentals">
+				<h1 style="color: #ffffff; text-align: center;">{ fmt.Sprintf("%s (%s)", company.Name, company.Ticker) }</h1>
+				if stockPrice > 0 {
+					if dayMovePercentage >= 0 {
+						<p style="color: #4e9f3d; text-align: center;">{ fmt.Sprintf("%.2f (+%.2f%%)", stockPrice, dayMovePercentage) }</p>
+					} else {
+						<p style="color: #cf0000; text-align: center;">{ fmt.Sprintf("%.2f (%.2f%%)", stockPrice, dayMovePercentage) }</p>
+					}
+				}
+				if company.Exchange != nil {
+					<h2 style="color: #ffffff; text-align: center;">{ *company.Exchange }</h2>
+				}
+			</div>
+			<div id="financials">
+				<h3 style="color: #ffffff">Financials:</h3>
+				<ul style="color: #ffffff;">
+					for _, value := range company.Financials {
+						if value != nil {
+							<li>
+								<p><b>{ value.Label }</b></p>
+								<p>{ value.Description }</p>
+								<p><b>Annual:</b></p>
+								for _, entry := range value.Annually {
+									<p>{ fmt.Sprintf("%s: %.0f", entry.Frame, entry.Value) }</p>
+								}
+								<p><b>Quarterly:</b></p>
+								for _, entry := range value.Quarterly {
+									<p>{ fmt.Sprintf("%s: %.0f", entry.Frame, entry.Value) }</p>
+								}
+							</li>
+						}
+					}
+				</ul>
+			</div>
+		</body>
+	</html>
 }

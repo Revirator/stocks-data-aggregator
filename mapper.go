@@ -1,12 +1,14 @@
 package main
 
 import (
+	"log"
+
 	"github.com/revirator/cfd/external"
 	"github.com/revirator/cfd/model"
 )
 
-func MapFinancialFactsToFinancialMetrics(facts *external.FinancialFacts) map[string]model.FinancialMetric {
-	return map[string]model.FinancialMetric{
+func MapFinancialFactsToFinancialMetrics(facts *external.FinancialFacts) map[string]*model.FinancialMetric {
+	return map[string]*model.FinancialMetric{
 		"Cash":                                  mapMetricToFinancialMetric(facts.Principles.Cash),
 		"CashAndCashEquivalentsAtCarryingValue": mapMetricToFinancialMetric(facts.Principles.CashAndCashEquivalentsAtCarryingValue),
 		"CommonStockSharesOutstanding":          mapMetricToFinancialMetric(facts.Principles.CommonStockSharesOutstanding),
@@ -22,15 +24,18 @@ func MapFinancialFactsToFinancialMetrics(facts *external.FinancialFacts) map[str
 	}
 }
 
-func mapMetricToFinancialMetric(fact external.Metric) model.FinancialMetric {
-	return model.FinancialMetric{
-		Label:       fact.Label,
-		Description: fact.Description,
-		Values:      mapUnitsToFinancialEntries(fact.Units),
+func mapMetricToFinancialMetric(fact *external.Metric) *model.FinancialMetric {
+	if fact == nil {
+		return nil
 	}
+	metric := model.FinancialMetric{}
+	metric.Label = fact.Label
+	metric.Description = fact.Description
+	mapUnitsToFinancialEntries(fact.Units, &metric)
+	return &metric
 }
 
-func mapUnitsToFinancialEntries(units external.Units) []model.FinancialEntry {
+func mapUnitsToFinancialEntries(units external.Units, metric *model.FinancialMetric) {
 	var entries []external.FinancialDataEntry
 	if len(units.PrimaryEntries) > 0 {
 		entries = units.PrimaryEntries
@@ -39,12 +44,29 @@ func mapUnitsToFinancialEntries(units external.Units) []model.FinancialEntry {
 	} else if len(units.TertiaryEntries) > 0 {
 		entries = units.TertiaryEntries
 	} else {
-		return []model.FinancialEntry{}
+		return
 	}
 
-	result := make([]model.FinancialEntry, len(entries))
+	// TODO: handle 10-Q/A forms differently?
+	// TODO: handle 8-K and other forms?
 	for _, entry := range entries {
-		result = append(result, model.FinancialEntry(entry))
+		if entry.IsQuarterlyReport() {
+			metric.Quarterly = append(metric.Quarterly, mapFinancialDataEntryToFinancialEntry(entry))
+		}
+		if entry.IsAnnualReport() {
+			metric.Annually = append(metric.Annually, mapFinancialDataEntryToFinancialEntry(entry))
+		}
 	}
-	return result
+
+	if metric.Label == "Revenues" {
+		log.Println(metric.Annually)
+	}
+}
+
+func mapFinancialDataEntryToFinancialEntry(entry external.FinancialDataEntry) model.FinancialEntry {
+	return model.FinancialEntry{
+		Value: entry.Value,
+		Frame: entry.Frame,
+		Form:  model.FinancialForm(entry.Form),
+	}
 }

@@ -16,21 +16,21 @@ type FinancialFacts struct {
 }
 
 type EntityInformation struct {
-	EntityCommonStockSharesOutstanding Metric
+	EntityCommonStockSharesOutstanding *Metric
 }
 
 type Principles struct {
-	Cash                                  Metric // TODO: check why some companies are missing this
-	CashAndCashEquivalentsAtCarryingValue Metric
-	CommonStockSharesOutstanding          Metric // TODO: might not be up to date?
-	CostsAndExpenses                      Metric
-	EarningsPerShareDiluted               Metric
-	LongTermDebt                          Metric
-	NetIncomeLoss                         Metric
-	PaymentsOfDividends                   Metric
-	PaymentsOfDividendsCommonStock        Metric
-	Revenues                              Metric
-	ShortTermInvestments                  Metric
+	Cash                                  *Metric // TODO: check why some companies are missing this
+	CashAndCashEquivalentsAtCarryingValue *Metric
+	CommonStockSharesOutstanding          *Metric // TODO: might not be up to date?
+	CostsAndExpenses                      *Metric
+	EarningsPerShareDiluted               *Metric
+	LongTermDebt                          *Metric
+	NetIncomeLoss                         *Metric
+	PaymentsOfDividends                   *Metric
+	PaymentsOfDividendsCommonStock        *Metric
+	Revenues                              *Metric
+	ShortTermInvestments                  *Metric
 }
 
 type Metric struct {
@@ -46,11 +46,17 @@ type Units struct {
 }
 
 type FinancialDataEntry struct {
-	Start string  `json:"start"`
-	End   string  `json:"end"`
-	Val   float64 `json:"val"`
-	Form  string  `json:"form"`
+	Value float64 `json:"val"`
 	Frame string  `json:"frame"`
+	Form  string  `json:"form"`
+}
+
+func (entry FinancialDataEntry) IsQuarterlyReport() bool {
+	return entry.Form == "10-Q" || entry.Form == "10-K" || entry.Form == "10-Q/A"
+}
+
+func (entry FinancialDataEntry) IsAnnualReport() bool {
+	return entry.Form == "10-K"
 }
 
 const (
