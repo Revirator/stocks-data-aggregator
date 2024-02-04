@@ -66,26 +66,18 @@ func (server *Server) showHomePage(w http.ResponseWriter, r *http.Request) {
 
 func (server *Server) showCompanyPage(w http.ResponseWriter, r *http.Request) {
 	ticker := strings.ToUpper(mux.Vars(r)["ticker"])
-	// company, err := getCompanyByTicker(ticker, server.Database)
-	// if err != nil {
-	// 	if err.Error() == "company missing" {
-	// 		errorMessage := "Company with ticker '%s' does not exist or is not listed on any of the US exchanges."
-	// 		w.WriteHeader(http.StatusNotFound)
-	// 		view.Error(fmt.Sprintf(errorMessage, ticker)).Render(r.Context(), w)
-	// 	} else {
-	// 		log.Printf("Error when retrieving information for company with ticker '%s'. Root cause:\n%s", ticker, err)
-	// 		w.WriteHeader(http.StatusInternalServerError)
-	// 		view.Error("Something went wrong! Please try again later.").Render(r.Context(), w)
-	// 	}
-	// 	return
-	// }
-
-	exchange := "Nasdaq"
-	company := &model.Company{
-		CIK:      "0000789019",
-		Ticker:   ticker,
-		Name:     "MICROSOFT CORP",
-		Exchange: &exchange,
+	company, err := getCompanyByTicker(ticker, server.Database)
+	if err != nil {
+		if err.Error() == "company missing" {
+			errorMessage := "Company with ticker '%s' does not exist or is not listed on any of the US exchanges."
+			w.WriteHeader(http.StatusNotFound)
+			view.Error(fmt.Sprintf(errorMessage, ticker)).Render(r.Context(), w)
+		} else {
+			log.Printf("Error when retrieving information for company with ticker '%s'. Root cause:\n%s", ticker, err)
+			w.WriteHeader(http.StatusInternalServerError)
+			view.Error("Something went wrong! Please try again later.").Render(r.Context(), w)
+		}
+		return
 	}
 
 	if company.Financials == nil {
@@ -93,7 +85,7 @@ func (server *Server) showCompanyPage(w http.ResponseWriter, r *http.Request) {
 		facts := external.GetFinancialFactsForCompanyGivenCIK(company.CIK)
 		if facts != nil {
 			company.Financials = MapFinancialFactsToFinancialMetrics(facts)
-			// updateCompanyFinancialsByTicker(ticker, company.Financials, server.Database)
+			updateCompanyFinancialsByTicker(ticker, company.Financials, server.Database)
 		}
 	}
 

@@ -14,4 +14,4 @@ stop:
 	docker-compose down
 
 clean: stop
-	docker system prune -f && docker volume prune -af && powershell rm -r -force ./volumes/
+	docker system prune -f && docker volume prune -af

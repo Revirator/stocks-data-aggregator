@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/revirator/cfd/external"
 	"github.com/revirator/cfd/model"
 )
@@ -56,10 +54,6 @@ func mapUnitsToFinancialEntries(units external.Units, metric *model.FinancialMet
 		if entry.IsAnnualReport() {
 			metric.Annually = append(metric.Annually, mapFinancialDataEntryToFinancialEntry(entry))
 		}
-	}
-
-	if metric.Label == "Revenues" {
-		log.Println(metric.Annually)
 	}
 }
 

@@ -5,7 +5,7 @@ WORKDIR /app
 COPY go.* ./
 
 RUN go mod download
-RUN go install github.com/a-h/templ/cmd/templ@v0.2.476
+RUN go install github.com/a-h/templ/cmd/templ@v0.2.543
 
 COPY . .
 
